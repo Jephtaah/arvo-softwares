@@ -1,0 +1,509 @@
+# Phase 3: Writing, Designs and Sending
+
+## Gate Criteria
+- Email Template Studio fully functional with live preview matching actual sends
+- DeepSeek writing pipeline with fact check producing truthful emails
+- Per-user job queue sending emails according to user rules
+- Follow-up system working (one follow-up after ~5 days if no reply)
+- Reply detection and notification system operational
+- Email rendering compliant with Gmail and Outlook
+
+## Technology Stack
+This phase implements the core writing and sending systems using the specified PRD technology stack:
+- **Framework**: Next.js (App Router) with TypeScript for API routes and server-side rendering
+- **Writing Pipeline**: DeepSeek API integration via thin provider layer (with ability to swap providers)
+- **Email Sending**: Gmail API and Microsoft Graph API for sending emails through user mailboxes
+- **Background Processing**: Durable job queue (Inngest/QStash or equivalent) for per-user email queues
+- **Database**: Neon PostgreSQL for storing messages, message events, and user templates
+- **UI**: Next.js pages with shadcn/ui components and Tailwind CSS (from Phase 0 design system)
+- **Rendering Engine**: Server-side HTML rendering with inline CSS for email compatibility
+- **Caching**: Redis or equivalent for company summary caching and prompt optimization
+
+## Overview
+Phase 3 implements the core outreach functionality as described in PRD sections 8, 11-12. This phase covers the Email Template Studio, DeepSeek writing pipeline with fact checking, email rendering, sending systems, follow-ups, reply detection, and the activity log. The phase integrates the user-facing design system with the backend writing and delivery infrastructure.
+
+## Detailed Tasks
+
+### 1. Email Template Studio Completion
+- [ ] Finalize template settings schema to match PRD section 8 table exactly
+- [ ] Implement all layout options:
+  - Plain: minimal styling, looks like hand-typed email (default for job seekers)
+  - Light: simple accent line + signature block (default for agencies)
+  - Card: header band with name + optional button
+- [ ] Build advanced color system:
+  - Color picker with access to full design token palette
+  - Automatic contrast checking (WCAG AA for text/background)
+  - Auto-suggest fixing colors that fail contrast check
+  - Color validation against email client limitations
+- [ ] Complete font system:
+  - Email-safe font stack selector (system fonts, web-safe options)
+  - Font rendering validation for Gmail/Outlook
+  - Fallback font chain implementation
+- [ ] Finalize text size/spacing system:
+  - Compact vs Comfortable options with precise line heights and spacing
+  - Preview of both options in real time
+- [ ] Complete logo/photo system:
+  - Upload handler with client-side validation (size, type, dimensions)
+  - Automatic resizing and optimization for email use
+  - Inline embedding (no external hosting for privacy)
+  - File size limits and compression
+- [ ] Build signature composer:
+  - Auto-population from profile data (name, title, company, phone, website)
+  - Manual editing and custom field addition
+  - Profile link adder (max 3 links as per PRD)
+  - Formatting options (separators, styling, order)
+- [ ] Implement CTA button system:
+  - Text field for button label (e.g., "Book a call", "View portfolio")
+  - URL field with validation
+  - Enable/disable toggle
+  - Styling options (primary, secondary, outline, ghost variants)
+  - URL tracking prevention (no query parameters for tracking)
+- [ ] Finalize footer system:
+  - Required sender details (name, address, etc. from onboarding)
+  - Required unsubscribe link (functional and styled)
+  - Styling options (text alignment, font size, color, spacing)
+  - Non-removable enforcement (critical for compliance)
+- [ ] Complete follow-up design system:
+  - Same as first email or lighter variant toggle
+  - Automatic lighter variant generation (reduced styling, simplified)
+  - Preview of both variants
+- [ ] Implement deliverability hints system:
+  - Plain email advantage explanation
+  - Styled email warnings (without blocking)
+  - Best practices guidance
+- [ ] Build test email sender:
+  - Send to connected mailbox only
+  - Three per day limit enforcement
+  - Clear marking as test emails
+  - No count toward daily sending cap
+  - Delivery confirmation and error handling
+- [ ] Create template management system:
+  - Named template saving/loading
+  - Default template designation
+  - One-click reset to role-based default
+  - Template duplication and renaming
+  - Deletion with confirmation
+- [ ] Build template preview engine:
+  - Exact match to production rendering pipeline
+  - Desktop/mobile viewport switching
+  - Light/dark mode toggling
+  - Sample data injection (from user profile + sample lead)
+  - <500ms update latency (PRD NFR requirement)
+  - Interactive element highlighting (hover states, etc.)
+
+### 2. DeepSeek Writing Pipeline Completion
+- [ ] Finalize provider layer abstraction:
+  - Clean interface for DeepSeek API calls
+  - Easy swapping to alternative providers (for legal compliance)
+  - Request/response logging and monitoring
+  - Error handling and retry mechanisms
+- [ ] Implement context builder (PRD section 11.3.1):
+  - User confirmed facts extraction and formatting
+  - Lead signal data structuring (type, source, description, date)
+  - Source link inclusion for citation
+  - Public company details from enrichment (description, size, etc.)
+  - User tone settings application (formal/casual, short/detailed)
+  - Context window optimization and truncation strategies
+- [ ] Build generation call (PRD section 11.3.2):
+  - Structured prompt engineering for consistent output
+  - Temperature and parameter tuning for creativity vs accuracy
+  - Structured response parsing (subject, opening line, body paragraphs, closing, P.S., facts used)
+  - Text-only output enforcement (no HTML/markdown)
+  - Length targeting (~120 words)
+  - Signal citation requirement in opening line
+- [ ] Complete fact check system (PRD section 11.3.3):
+  - Second LLM call at low temperature (more deterministic)
+  - Detailed prompt for claim-by-claim validation
+  - Cross-referencing against:
+    - User's confirmed fact list
+    - Lead signal and source
+    - Public company data
+  - Pass/fail determination with specific failure reasons
+  - Rule-based validation integration:
+    - Length limits (too long/short)
+    - Spam phrase detection
+    - Deceptive subject line detection (RE: FW:, fake urgency)
+    - Link validation (count, destination, shortening services)
+    - Required footer detail validation
+  - Structured failure reporting for retry logic
+- [ ] Implement retry logic (PRD section 11.3.5):
+  - Single retry attempt with failure reasons attached to context
+  - Prompt adjustment based on specific failures
+  - Final discard on second failure with detailed logging
+  - Never-send guarantee for twice-failed emails
+  - Metrics collection on failure rates and reasons
+- [ ] Build writing rules enforcement system:
+  - Anti-hallucination guards:
+    - Experience invention prevention
+    - Client/customer fabrication prevention
+    - Result/number/metric falsification prevention
+    - Relationship pretension prevention
+  - Length enforcement (~120 words target, hard limit)
+  - Structure enforcement:
+    - One specific observation about company (from signal)
+    - One relevant fact about sender (from fact list)
+    - One easy, low-pressure ask
+  - Role-specific content enforcement:
+    - Job seeker: interest explanation in role + relevant background
+    - Agency: noticed detail about company + relevant case study
+  - Subject line integrity:
+    - Honest and specific representation
+    - No fake replies/forwards (RE:/, FW:/ without actual thread)
+    - No false urgency or scarcity tactics
+    - Clear identification of purpose
+- [ ] Implement cost control systems (PRD section 11.4):
+  - Per-user daily generation limit enforcement
+  - Company summary caching (by domain, TTL-based)
+  - Prompt optimization and token minimization
+  - Platform-wide monthly budget monitoring
+  - Automatic generation slowdown before budget exceeded
+  - Usage tracking and reporting per user
+- [ ] Finalize privacy-preserving data sending (PRD section 11.5):
+  - Minimum necessary data transmission to LLM API
+  - PII stripping and minimization strategies
+  - Plain language disclosure during onboarding
+  - Detailed explanation in privacy policy
+  - Audit logging of LLM API calls (without storing full context)
+  - Provider layer enabling model switch if legal review requires
+- [ ] Build quality control systems (PRD section 11.6):
+  - Fixed test suite construction:
+    - Diverse user profiles (job seeker/agency variations)
+    - Varied lead types (job posts, funding, launches)
+    - Edge cases and boundary conditions
+  - Automated regression testing on prompt changes
+  - Weekly sampling system for sent emails:
+    - Truthfulness verification against facts
+    - Tone assessment (formal/casual, short/detailed)
+    - Structure compliance checking
+    - Readability and clarity evaluation
+  - Fact-check failure rate tracking:
+    - Real-time monitoring dashboard
+    - Trend analysis and alerting
+    - Root cause analysis integration
+    - PRD metric: "Falling week over week"
+
+### 3. Email Rendering System Completion
+- [ ] Build production rendering pipeline:
+  - Server-side only (no client-side rendering for security/consistency)
+  - DeepSeek output -> user template -> final email
+  - Two-part output generation:
+    - HTML version with inlined CSS (Gmail/Outlook optimized)
+    - Plain-text version (always included, same semantic content)
+  - Perfect template preview alignment (what you see is what gets sent)
+- [ ] Implement CSS inlining system:
+  - Token-based CSS generation from design system
+  - Inline style application (no <style> blocks or external CSS)
+  - Email client specific optimizations:
+    - Gmail-specific quirks handling
+    - Outlook-specific quirks handling
+    - Mobile responsiveness fundamentals
+  - Fallback support for limited CSS email clients
+- [ ] Complete HTML email structure:
+  - Table-based layout for maximum compatibility
+  - Semantic structure preservation
+  - Accessible email best practices (roles, labels, etc.)
+  - Plain-text equivalent generation
+  - Proper encoding and character set handling (UTF-8)
+- [ ] Build enforcement of renderer rules (PRD section 8.7):
+  - Tracking pixel prevention (no external image loads for tracking)
+  - Remote stylesheet prohibition (all CSS inlined)
+  - Reply detection via mailbox thread IDs (not open tracking)
+  - Single image limit enforcement (with size optimization)
+  - Zero attachments policy (links only)
+  - Link restriction to:
+    - Signature area (profile/portfolio links)
+    - Optional CTA button (one link maximum)
+    - Footer unsubscribe link (required and functional)
+  - Mandatory footer enforcement:
+    - Sender details (from onboarding/profile)
+    - Functional unsubscribe link
+    - Postal address requirement (from onboarding)
+    - Styling options preservation
+  - Template validation blocking:
+    - Prevention of saving non-compliant templates as autopilot default
+    - Clear error messaging on rule violations
+    - Override prevention (compliance cannot be bypassed)
+- [ ] Build email identification and tracking system:
+  - Unique message ID generation and storage
+  - Thread ID preservation and usage
+  - Conversation tracking for replies and follow-ups
+  - Reference header implementation (In-Reply-To, References)
+  - Proper email headers for spam compliance
+- [ ] Create email storage and retrieval system:
+  - Sent email content preservation (for activity log)
+  - Metadata storage (timestamps, user ID, lead ID, template used)
+  - Efficient querying for activity log display
+  - Backup and archival strategy
+  - Data retention policy implementation (12 months per PRD)
+- [ ] Implement email testing and validation:
+  - Cross-client rendering testing (Litmus or equivalent simulation)
+  - Spam score checking (SpamAssassin or similar)
+  - Deliverability prediction and warnings
+  - Accessibility validation (WCAG for emails)
+  - Security scanning (malicious content detection)
+
+### 4. Sending and Follow-Up System
+- [ ] Build durable job queue integration:
+  - Per-user job queues (Inngest/QStash or equivalent)
+  - Idempotent job design (safe retries without duplicate sends)
+  - Error handling and dead letter queue management
+  - Priority and scheduling capabilities
+  - Monitoring and observability integration
+- [ ] Implement sending schedule enforcer:
+  - User-configurable days and hours (default weekdays 9-17)
+  - Time zone aware scheduling
+  - Random gap generation between sends (prevents bursting)
+  - Gmail/Outlook daily limit respect (dynamic based on account status)
+  - Burst prevention algorithms
+  - Catch-up sending for missed windows (within limits)
+- [ ] Create email dispatch system:
+  - Gmail API integration (send via user's connected account)
+  - Microsoft Graph API integration (send via user's connected account)
+  - Sent folder replication (appear in user's Sent folder)
+  - Thread ID preservation for conversation tracking
+  - Error handling and retry logic (network, auth, rate limits)
+  - Bounce detection preparation (header setup)
+- [ ] Implement lead state management for sending:
+  - State transitions: Written → Checked → Sent
+  - Atomic state updates with sending attempts
+  - Failure state handling (Skipped for rule/fact check failures)
+  - Sent state confirmation and metadata storage
+- [ ] Build follow-up system (PRD section 12.3-12.6):
+  - Timing mechanism (~5 days after initial send if no reply)
+  - Same thread continuation (In-Reply-To/References headers)
+  - Identical writing and fact-check process as initial email
+  - Follow-up design usage (from Email Template Studio)
+  - Suppression checks (skip if lead replied/bounced/unsubscribed)
+  - One-follow-up maximum enforcement
+  - Follow-up state: Followed up (terminal if no reply)
+- [ ] Create reply detection and handling system:
+  - Mailbox thread monitoring (only threads initiated by Arvo Reach)
+  - Automatic reply detection (new messages in tracked threads)
+  - Out-of-office reply filtering (automatic, doesn't count as real reply)
+  - Real reply identification and processing
+  - Instant follow-up cancellation upon reply detection
+  - State transition: Sent/Followed up → Replied
+  - User notification system (in-app + email)
+  - Thread linking to user's mailbox
+  - Reply content preservation (for potential future features)
+- [ ] Build bounce and unsubscribe handling:
+  - Delivery failure detection from mailbox (via bounces)
+  - Automatic suppression list addition
+  - Sender health impact calculation
+  - Unsubscribe link handling (one-click immediate and permanent)
+  - Stop-request detection in replies (simple rule matching)
+  - Global suppression list integration
+  - Unsubscribe confirmation and feedback
+- [ ] Implement sender health monitoring:
+  - Daily sending limit tracking vs safe cap
+  - Bounce rate monitoring (triggers auto-pause at 3%)
+  - Unsubscribe and stop-request rate monitoring (triggers auto-pause at 2%)
+  - Mailbox provider error monitoring (sending-limit, suspicious-activity)
+  - Fact-check failure rate monitoring (triggers auto-pause at >30%)
+  - Plain language pause explanations and resume instructions
+  - Automatic recovery when conditions improve
+- [ ] Create global systems:
+  - Global daily cap enforcement (fair sharing algorithm)
+  - New mailbox delay enforcement (24 hours before sending)
+  - Global suppression list management (public form ingestion)
+  - Admin controls for emergency platform/user pausing
+  - Audit logging for all sending-related events
+
+### 5. Activity Log and Dashboard Integration
+- [ ] Complete activity log implementation (PRD section 14.4):
+  - Per-lead detailed view:
+    - Signal that triggered it (type, source, date)
+    - Match score and factor breakdown
+    - Current state in lead state machine
+    - Complete email as sent (subject and body)
+    - Timestamps for each state transition
+    - Failure reasons (if applicable)
+  - Filtering and sorting capabilities:
+    - By state (Matched, Sent, Replied, etc.)
+    - By date ranges
+    - By signal type
+    - By match score thresholds
+  - Detailed email viewing:
+    - Subject and full body display
+    - Send timestamp and state information
+    - Link to thread in user's mailbox (for Replied leads)
+    - Copy-to-clipboard functionality
+  - Export capabilities (CSV for external analysis)
+  - Real-time updates as leads progress through states
+- [ ] Build dashboard widgets (PRD section 14.3):
+  - Large prominent Autopilot status with Pause/Resume
+  - This week metrics: companies found, emails sent, follow-ups pending, replies
+  - Replies list (newest first) with mailbox thread links
+  - Sender health meter (daily limit used vs cap, mailbox health indicators)
+  - Rules summary with edit link and Template Studio shortcut
+  - Quick actions and common task shortcuts
+  - Real-time updating (WebSocket or polling with intelligent frequency)
+- [ ] Implement dashboard accessibility:
+  - Screen reader friendly labels and descriptions
+  - Keyboard navigable controls and metrics
+  - Sufficient color contrast and focus indicators
+  - Responsive layout for mobile dashboard views
+- [ ] Build dashboard performance optimizations:
+  - Data caching strategies for frequently accessed metrics
+  - Incremental updates rather than full reloads
+  - Skeleton loading states during data fetching
+  - Error states with retry guidance
+  - Empty state handling with helpful guidance
+
+### 6. Safety and Abuse Prevention Systems
+- [ ] Implement per-user safe cap system (PRD section 13.1):
+  - Initial cap of 5 emails/day for new users
+  - Stepwise increase mechanism (to max of 25)
+  - Clean week requirements (bounces <3%, no stop-request spikes)
+  - Pause-state protection (no increases while paused/flagged)
+  - Cap visibility and explanation in dashboard
+  - Manual override prevention (algorithmic only)
+- [ ] Finalize global daily cap system (PRD section 13.2):
+  - Fair sharing algorithm implementation
+  - Real-time usage tracking and enforcement
+  - Graceful degradation when cap approached
+  - Priority-based allocation during shortages
+  - Cap reporting and transparency
+- [ ] Complete new mailbox delay system (PRD section 13.3):
+  - 24-hour enforcement after mailbox connection
+  - Clear communication during onboarding
+  - Status indicator showing when sending can begin
+  - Automatic activation after delay period
+  - Bypass prevention (cannot be disabled)
+- [ ] Build auto-pause system (PRD section 13.4):
+  - Multi-condition triggering:
+    - Bounce rate >3% of last 50 sends
+    - Unsubscribe + stop-request rate >2%
+    - Mailbox provider sending-limit or suspicious-activity error
+    - >30% of generated emails failing fact check
+  - Plain language explanation display (specific to trigger)
+  - Resume instructions presentation (specific to trigger)
+  - Automatic re-enablement when conditions normalize
+  - Manual override capability for administrators
+  - Audit logging of all pause/resume events
+- [ ] Complete global suppression list system (PRD section 13.5):
+  - Ingestion sources:
+    - User unsubscribes (immediate and permanent)
+    - User bounces (after delivery failure)
+    - Explicit stop requests (from replies)
+    - Public form submissions (companies requesting no contact)
+  - Storage and indexing for efficient lookup
+  - Application during lead generation and enrichment
+  - Regular maintenance and cleanup processes
+  - Public form building and validation
+  - Admin tools for list management
+- [ ] Finalize content rules enforcement (PRD section 13.6):
+  - Deceptive subject line prevention (through fact check and rules)
+  - Impersonation prevention (through fact-only approach)
+  - Bulk identical copy prevention (through personalization)
+  - Sender-owned facts enforcement (through fact list constraint)
+  - Signal-based content enforcement (through writing pipeline)
+  - Audit logging for rule violations and near-misses
+- [ ] Build admin controls system (PRD section 13.7):
+  - Internal dashboard for operators:
+    - Individual user pausing capability
+    - Entire platform emergency stop
+    - Health metrics overview (platform-wide)
+    - Misuse identification and user removal tools
+  - Secure access and authentication for admin functions
+  - Audit logging of all admin actions
+  - Reporting and analytics capabilities
+- [ ] Implement terms of use enforcement (PRD section 13.8):
+  - Plain language presentation during onboarding
+  - Acceptance tracking and storage
+  - Prohibited uses enumeration and monitoring
+  - Violation detection and reporting systems
+  - Educational resources and guidance
+  - Legal review integration and updates
+
+### 7. Performance and Observability
+- [ ] Implement performance monitoring:
+  - End-to-end latency tracking (lead to sent email)
+  - Pipeline stage breakdown timing (discovery, enrichment, matching, writing, rendering, sending)
+  - External API call monitoring and latency tracking
+  - Database query performance monitoring
+  - Cache hit/miss ratio tracking
+  - Job queue depth and processing time monitoring
+  - Resource utilization monitoring (CPU, memory, disk, network)
+- [ ] Build observability infrastructure:
+  - Structured logging for all system components
+  - Distributed tracing capabilities (for cross-service requests)
+  - Metrics collection and aggregation (Prometheus-compatible)
+  - Health check endpoints for all services
+  - Alerting system for anomalies and SLA violations
+  - Dashboard for system health and performance trends
+  - Log retention and archival strategy
+  - Error tracking and exception monitoring
+- [ ] Implement scaling and load handling:
+  - Horizontal scaling preparation (stateless services where possible)
+  - Database connection pooling and optimization
+  - External API rate limiting and retry logic
+  - Memory leak prevention and detection
+  - Graceful degradation under high load
+  - Load shedding capabilities for non-critical functions
+  - Auto-scaling policy definitions and testing
+- [ ] Build data validation and integrity systems:
+  - Input validation at all API boundaries
+  - Data consistency checks and reconciliation
+  - Automated backup and recovery procedures
+  - Data corruption detection and prevention
+  - Privacy compliance verification (data minimization, isolation)
+  - Regular audits and integrity checks
+
+## Acceptance Criteria
+- Email Template Studio preview exactly matches production sent emails
+- All template options (Plain, Light, Card) render correctly in Gmail and Outlook
+- DeepSeek pipeline generates emails using only user facts and signal data
+- Fact check prevents sending of emails with hallucinated or false information
+- Writing rules are enforced (no invented experiences, proper structure, role-specific content)
+- Rendering compliance: no tracking pixels, proper links, required footer, single image limit
+- Sending system respects user schedules, time zones, and daily limits
+- Follow-up system sends exactly one follow-up ~5 days after no reply
+- Reply detection works correctly and stops follow-ups upon reply
+- Bounce and unsubscribe handling adds addresses to suppression lists immediately
+- Activity log shows complete lead journey with accurate timestamps and data
+- Dashboard updates in real-time or near real-time
+- Sender health monitoring works and triggers auto-pause appropriately
+- Global systems (global cap, suppression list) function correctly
+- Admin controls allow emergency intervention when needed
+- Performance benchmarks met:
+  - Dashboard loads in <2 seconds (PRD NFR)
+  - Onboarding steps respond in <1 second (except CV reading)
+  - Template preview updates in <500ms after change
+  - End-to-end lead processing <10 seconds average
+- System handles errors gracefully with clear user messaging
+- All user data remains properly isolated by user ID
+- Audit trails capture all significant system actions for security and compliance
+- System is responsive and accessible across devices
+- No compliance violations in email generation or sending
+
+## Dependencies
+- Phase 0: Design system must be complete and approved
+- Phase 1: User accounts, profiles, mailbox connections, and Template Studio foundation must be functional
+- Phase 2: Discovery, enrichment, matching, and writing pipeline foundation must be functional
+- External: Gmail API and Microsoft Graph API access
+- External: DeepSeek API access (or alternative LLM provider)
+- External: Job queue service (Inngest/QStash or equivalent)
+- External: Monitoring and alerting services (DataDog, New Relic, or open-source equivalents)
+- External: Email testing services (Litmus equivalent or in-house testing infrastructure)
+
+## Estimated Effort
+- 4-5 weeks for a small team (2 backend engineers focused on pipelines/queue, 1 frontend engineer, 1 full-stack engineer for integration, 1 DevOps/observability engineer)
+
+## Risks and Mitigations
+- Risk: Email client rendering inconsistencies
+  Mitigation: Comprehensive testing framework; use of email-specific CSS frameworks; fallback to safest common subset
+- Risk: LLM hallucinations despite fact checking
+  Mitigation: Multi-layer validation; conservative thresholds; human-in-the-loop auditing; continuous improvement from feedback
+- Risk: Email deliverability and reputation damage
+  Mitigation: Strict compliance with sender best practices; warm-up procedures; feedback loops; proactive monitoring
+- Risk: Performance bottlenecks in sending pipeline
+  Mitigation: Asynchronous processing; job queue buffering; rate limiting; horizontal scaling preparation
+- Risk: Complexity of global cap fair sharing algorithm
+  Mitigation: Start with simple implementation; iterate based on usage patterns; prioritize simplicity and transparency
+- Risk: Legal compliance challenges with international regulations
+  Mitigation: Region-based exclusions at launch; conservative approach; legal review integration; ability to adapt quickly
+- Risk: User confusion or dissatisfaction with automated system
+  Mitigation: Transparent activity log; plain language explanations; educational resources; easy controls and overrides
+- Risk: System overload during peak usage times
+  Mitigation: Load testing; auto-scaling preparation; queue management; graceful degradation; user communication during high load

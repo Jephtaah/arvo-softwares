@@ -1,0 +1,1020 @@
+# Phase 4: Safeguards and Dashboard
+
+## Gate Criteria
+- Complete sender safety and abuse prevention systems functional
+- Dashboard showing all required metrics and controls
+- Activity log displaying complete lead journey with sent emails
+- Job seeker to-do list operational (for form-only roles)
+- Legal pages (terms, privacy policy) completed and reviewed
+- Auto-pause and suppression systems working correctly
+- Admin controls for platform oversight implemented
+
+## Technology Stack
+This phase implements the safety systems, dashboard, and activity log using the specified PRD technology stack:
+- **Framework**: Next.js (App Router) with TypeScript for pages and API routes
+- **UI**: shadcn/ui components with Tailwind CSS (design system from Phase 0)
+- **Database**: Neon PostgreSQL for storing activity logs, safety metrics, and system state
+- **State Management**: React state and Next.js routing for dashboard interactions
+- **Real-time Updates**: WebSocket connections or intelligent polling for live dashboard updates
+- **Background Processing**: Durable job queue (Inngest/QStash or equivalent) for safety system monitoring
+- **Monitoring**: Integrated logging, metrics, and alerting systems
+- **Security**: Encryption for sensitive data, secure authentication for admin controls
+
+## Overview
+Phase 4 implements the safety systems, dashboard, activity log, job seeker to-do list, and legal components as described in PRD sections 13-15. This phase focuses on protecting sender reputation, providing user visibility and control, ensuring legal compliance, and handling special cases like form-only applications for job seekers.
+
+## Detailed Tasks
+
+### 1. Sender Safety and Abuse Prevention Systems
+#### Per-User Safe Cap System
+- [ ] Initialize new users at 5 emails/day safe cap
+- [ ] Implement stepwise increase algorithm to maximum of 25 emails/day
+- [ ] Define clean week criteria:
+  - Bounce rate under 3% of last 50 sends
+  - No stop-request spikes (unsubscribe + stop requests)
+  - No sending while user is paused or flagged
+- [ ] Create cap increase visibility in dashboard with explanation
+- [ ] Prevent manual override (algorithmic increases only)
+- [ ] Track weekly metrics for increase eligibility
+- [ ] Implement cap decrease mechanism for deteriorating health
+- [ ] Build cap forecasting and planning tools for users
+
+#### Global Daily Cap System
+- [ ] Design fair sharing algorithm for platform-wide sends
+- [ ] Implement real-time usage tracking across all users
+- [ ] Create allocation mechanism during cap constraints:
+  - Priority based on user health and engagement
+  - Reserve capacity for new users during warm-up
+  - Protect users with good standing
+- [ ] Build cap exhaustion handling (graceful degradation)
+- [ ] Create transparency dashboard showing:
+  - Platform total cap and current usage
+  - Individual user allocation and usage
+  - Reset schedule and timing
+- [ ] Implement automated cap adjustment based on platform health
+- [ ] Build audit trail for all cap allocations and changes
+
+#### New Mailbox Delay System
+- [ ] Enforce 24-hour minimum delay after mailbox connection
+- [ ] Clear communication during onboarding about delay purpose
+- [ ] Status indicator showing exact time when sending can begin
+- [ ] Automatic transition from delay to active sending
+- [ ] Prevention of bypass or disabling by users
+- [ ] Audit logging of delay period starts and ends
+- [ ] User education on why delay protects sender health
+
+#### Auto-Pause System
+- [ ] Implement multi-trigger monitoring:
+  - Bounce rate >3% of last 50 sends → pause with explanation
+  - Unsubscribe + stop-request rate >2% → pause with explanation
+  - Mailbox provider sending-limit error → pause with specific guidance
+  - Mailbox provider suspicious-activity error → pause with security notice
+  - >30% of generated emails failing fact check → pause with quality alert
+- [ ] Create plain language explanation system:
+  - Specific to each trigger condition
+  - Actionable steps to resolve the issue
+  - Clear path to resume sending
+  - Educational content on why each trigger matters
+- [ ] Build resume mechanism:
+  - Automatic when conditions normalize for sufficient period
+  - Manual override with confirmation for administrators
+  - Prevent immediate re-pause on same condition
+  - Graduated response for repeated issues
+- [ ] Implement pause state visualization:
+  - Dashboard banner with reason and resolution steps
+  - Controlled sending prevention (all queues halted)
+  - Preserved user settings and rules during pause
+  - Continued lead accumulation (no loss of opportunity)
+- [ ] Build pause audit logging with timestamps and triggers
+- [ ] Create pause notification system (in-app and email options)
+
+#### Global Suppression List System
+- [ ] Build ingestion pipeline for:
+  - User unsubscribes (immediate and permanent)
+  - User bounces (after confirmed delivery failure)
+  - Explicit stop requests (from reply content analysis)
+  - Public form submissions (companies requesting no contact)
+- [ ] Create efficient storage and lookup system:
+  - Indexed by email address and domain
+  - Support for wildcard domain blocking
+  - Distinction between address-level and domain-level blocks
+  - Expiration policies (addresses permanent, domains reviewable)
+- [ ] Implement application points:
+  - Lead generation filtering (pre-enrichment)
+  - Enrichment process filtering (pre-contact)
+  - Matching process filtering (pre-scoring)
+  - Final sending verification (last check)
+- [ ] Build maintenance and cleanup processes:
+  - Regular audits of suppression list accuracy
+  - Handling of corporate changes (acquisitions, rebranding)
+  - Process for legitimate appeals and removals
+  - Integration with unsubscribe link functionality
+- [ ] Create public suppression form:
+  - Simple submission for companies/individuals
+  - Validation and verification process
+  - Confirmation and tracking system
+  - Abuse prevention and rate limiting
+- [ ] Build admin tools for suppression list management:
+  - Bulk import/export capabilities
+  - Search and filtering functions
+  - Manual addition/removal with audit trail
+  - Reporting and analytics on list effectiveness
+
+#### Content Rules Enforcement
+- [ ] Implement deceptive subject line prevention:
+  - Through fact check system (PRD section 11.3.3)
+  - Additional regex-based detection for common tactics
+  - Prevention of RE:/FW:/ without actual thread history
+  - Blocking of false urgency/scarcity tactics ("Limited time!", "Act now!")
+  - Prevention of misleading context or implication
+- [ ] Build impersonation prevention:
+  - Through fact-only approach (PRD section 11.3.1)
+  - Validation that all claims tie to verified facts or signal
+  - Prevention of pretending to be someone else
+  - Blocking of false affiliation or endorsement claims
+- [ ] Implement bulk identical copy prevention:
+  - Through personalization in writing pipeline
+  - Variance enforcement in generated content
+  - Similarity detection between emails to different recipients
+  - Threshold-based blocking of near-identical content
+- [ ] Finalize sender-owned facts enforcement:
+  - Through confirmed fact list constraint (PRD section 11.3.1)
+  - Validation against user-provided CV/case studies only
+  - Prevention of inventing experience, clients, results, numbers
+  - Blocking of relationship fabrication with companies
+- [ ] Complete signal-based content enforcement:
+  - Through required signal citation in opening line (PRD section 11.3.2)
+  - Validation that email content relates to the signal
+  - Prevention of off-topic or irrelevant content
+  - Ensuring temporal relevance (signal recency factor)
+- [ ] Build audit logging for:
+  - Rule violations and near-misses
+  - Content adjustments made by systems
+  - User warnings and educational interventions
+  - Escalation patterns and repeat offenses
+
+#### Admin Controls System
+- [ ] Create internal operator dashboard:
+  - Individual user management:
+    - View detailed health metrics and activity
+    - Emergency pause capability for specific users
+    - Settings and rule review/adjustment tools
+    - Communication tools for user outreach
+    - Historical data and trend analysis
+  - Platform-wide controls:
+    - Emergency global pause capability
+    - System-wide health metrics overview
+    - Service degradation and maintenance tools
+    - Broadcast communication system
+  - Misuse identification and response:
+    - Automated suspicious activity detection
+    - Manual investigation tools and workflows
+    - User suspension and removal capabilities
+    - Appeal and reinstatement processes
+    - Evidence preservation and reporting
+- [ ] Implement secure access controls:
+  - Role-based access control (admin vs operator vs viewer)
+  - Multi-factor authentication requirement
+  - Session management and timeout controls
+  - Audit logging of all admin actions and accesses
+  - IP allowlisting and restrictions
+- [ ] Build comprehensive audit logging:
+  - All admin actions with user, timestamp, and reason
+  - Platform health metric changes
+  - System configuration modifications
+  - User management activities (pauses, removals, etc.)
+  - Security events and access attempts
+  - Data export and access logging
+- [ ] Create reporting and analytics system:
+  - Health metric dashboards and trends
+  - User behavior analysis and segmentation
+  - Intervention effectiveness tracking
+  - Compliance monitoring and violation reporting
+  - Export capabilities for external analysis
+  - Automated report generation and scheduling
+
+#### Terms of Use Enforcement
+- [ ] Create plain language presentation during onboarding:
+  - Key prohibitions highlighted and explained
+  - User responsibilities as sender clearly stated
+  - Consequences of violation clearly outlined
+  - Interactive elements for engagement and comprehension
+  - Save and review capability before proceeding
+- [ ] Implement acceptance tracking and storage:
+  - Explicit consent recording with timestamp
+  - Version tracking for terms updates
+  - Re-authentication prompts for significant changes
+  - Audit trail of acceptance and re-acceptance
+  - Easy access to current and historical terms
+- [ ] Build prohibited uses monitoring system:
+  - Automated detection of common violations
+  - Keyword and pattern matching for abuse attempts
+  - Behavioral analysis for suspicious patterns
+  - User reporting and flagging integration
+  - Escalation workflow for potential violations
+- [ ] Create violation detection and response:
+  - Clear escalation paths based on severity
+  - Automated warnings and educational interventions
+  - Temporary restrictions and capability limits
+  - Suspension and termination procedures
+  - Appeal process and reinstatement criteria
+  - Legal coordination and reporting requirements
+- [ ] Build educational resources and guidance:
+  - Ongoing sender education program
+  - Best practices guidance and tips
+  - Compliance update notifications
+  - Resource library and FAQ system
+  - Community standards and expectations communication
+- [ ] Establish legal review integration:
+  - Regular review schedule for terms and policies
+  - Tracking of regulatory changes and adaptations
+  - Incident response coordination with legal team
+  - Documentation preservation for legal proceedings
+  - Compliance certification and attestation processes
+
+### 2. Dashboard Implementation
+#### Core Dashboard Layout
+- [ ] Build responsive dashboard shell:
+  - Header with user info and navigation
+  - Sidebar with collapsible sections
+  - Main content area with grid layout
+  - Footer with version info and links
+  - Mobile-optimized single column layout
+- [ ] Implement theme integration:
+  - Light/dark mode toggling from design system
+  - Consistent spacing and typography
+  - Accessible color combinations
+  - High contrast mode support
+- [ ] Create real-time updating infrastructure:
+  - WebSocket connection for live updates
+  - Fallback polling mechanism for compatibility
+  - Intelligent update frequency based on data volatility
+  - Optimized data transfer (only changed data)
+  - Connection state handling and retry logic
+
+#### Autopilot Status Widget
+- [ ] Build large prominent status display:
+  - Clear visual indicator (running/paused/stopped)
+  - Large toggle button for Pause/Resume functionality
+  - Tooltip with detailed status explanation
+  - Accessible labeling and keyboard navigation
+  - Animated transitions for state changes
+- [ ] Implement status determination logic:
+  - Combines user settings, safety systems, and external factors
+  - Reflects actual sending capability (not just user intent)
+  - Shows subsystem health (mailbox, queues, etc.)
+  - Provides predictive status (will pause in X minutes if...)
+- [ ] Build status change handling:
+  - Immediate UI updates on state changes
+  - Animation and feedback for user actions
+  - Background process coordination
+  - Audit logging of all status changes
+  - User notification on significant status changes
+
+#### This Week Metrics Widget
+- [ ] Build metrics display:
+  - Companies found (discovery phase count)
+  - Emails sent (successful sends this week)
+  - Follow-ups pending (scheduled but not sent)
+  - Replies received (positive responses this week)
+- [ ] Implement time window definitions:
+  - Rolling 7-day window from current date
+  - Clear start/end time display and configuration
+  - Timezone aware calculations
+  - Holiday and adjustment handling
+- [ ] Create metric calculation systems:
+  - Efficient incrementing counters
+  - Database query optimizations for historical data
+  - Cache warming and pre-computation
+  - Real-time updates as events occur
+  - Correction mechanisms for data discrepancies
+- [ ] Build metric visualization:
+  - Numerical display with trend indicators
+  - Mini-charts or sparklines for visualization
+  - Comparison to user goals and averages
+  - Tooltips with detailed breakdowns
+  - Click-through to detailed views and reports
+
+#### Replies List Widget
+- [ ] Build replies display:
+  - Newest first chronological ordering
+  - Essential information preview (company, date, snippet)
+  - Avatars or initials for visual identification
+  - Unread/new reply highlighting
+  - Action buttons (view thread, mark read, etc.)
+- [ ] Implement reply detection and processing:
+  - Mailbox thread monitoring system
+  - Out-of-office filtering and exclusion
+  - Real reply classification and prioritization
+  - Timestamp preservation and sorting
+  - Duplicate detection and handling
+- [ ] Create reply item components:
+  - Compact view for list mode
+  - Expanded view with more details on hover/click
+  - Consistent design with activity log entries
+  - Accessible structure and navigation
+  - Touch-friendly for mobile use
+- [ ] Build interaction system:
+  - Click to open thread in user's mailbox
+  - Hover preview with more context
+  - Mark as read/unread functionality
+  - Archive or snooze options
+  - Reply or forward quick actions
+  - Spam/junk reporting (with user education)
+- [ ] Implement reply threading and grouping:
+  - Conversation view for multiple exchanges
+  - Collapsing and expanding of threads
+  - Summary statistics for thread activity
+  - Last reply timestamp and participant info
+  - Integration with email client concepts
+
+#### Sender Health Meter Widget
+- [ ] Build health visualization:
+  - Daily sending limit used vs safe cap (bar or gauge)
+  - Mailbox health indicator (multiple status levels)
+  - Trend arrows showing improvement/decline
+  - Color-coded status (green/yellow/red)
+  - Tooltips with detailed metric breakdowns
+- [ ] Implement health calculation systems:
+  - Daily usage tracking and reset
+  - Safe cap lookup and display
+  - Bounce rate calculation (rolling window)
+  - Unsubscribe and stop-request rate calculation
+  - Mailbox provider health signals integration
+  - Fact-check failure rate monitoring
+- [ ] Create health status indicators:
+  - Excellent (all metrics optimal)
+  - Good (minor concerns, no action needed)
+  - Warning (approaching thresholds, preventive action)
+  - Critical (exceeding thresholds, action required)
+  - Paused (safety systems engaged)
+  - Connected/Disconnected mailbox states
+- [ ] Build health guidance system:
+  - Specific recommendations based on metrics
+  - Educational content on metric meanings
+  - Actionable steps for improvement
+  - Predictive forecasting ("At current rate, you'll...")
+  - Historical trends and comparisons
+- [ ] Implement health-based controls:
+  - Automatic suggestions for rule adjustments
+  - One-click optimization buttons
+  - Safety system explanations and overrides
+  - Health-based sending limit recommendations
+  - Recovery path guidance after issues
+
+#### Rules Summary Widget
+- [ ] Build rules display:
+  - Compact summary of key autopilot rules
+  - Clear labeling and values
+  - Edit link to full rules configuration
+  - Shortcut to Email Template Studio
+  - Visual indication of rule source (user vs default)
+- [ ] Implement rules templating:
+  - Role-based defaults (job seeker vs agency)
+  - User customization tracking
+  - Inheritance and override systems
+  - Reset to defaults functionality
+  - Rule conflict detection and resolution
+- [ ] Create rules change detection:
+  - Real-time updates when rules modified
+  - Visual indication of unsaved changes
+  - Confirmation prompts for navigational loss
+  - Audit logging of all rule modifications
+  - Undo/redo capability for recent changes
+- [ ] Build rules explanation system:
+  - Hover tooltips with rule purpose and impact
+  - Links to detailed documentation and examples
+  - Plain language descriptions
+  - Visual examples of rule effects
+  - Best practices and recommendations
+
+#### Quick Actions and Shortcuts
+- [ ] Build actionable dashboard items:
+  - Immediate Pause/Resume one-click buttons
+  - Quick edit links for frequently changed settings
+  - One-click access to Email Template Studio
+  - Rules edit shortcut from summary widget
+  - Activity log jump links
+  - Help and support access points
+  - Onboarding restart or review options
+- [ ] Implement contextual actions:
+  - Different actions based on current state
+  - Progressive disclosure of advanced options
+  - Emergency controls prominent when needed
+  - Educational suggestions based on usage patterns
+  - Seasonal or temporal recommendations
+- [ ] Create customization capabilities:
+  - Widget rearranging and resizing
+  - Show/hide individual widgets
+  - Save and load dashboard layouts
+  - Default layout restoration
+  - Role-specific default configurations
+
+### 3. Activity Log Implementation
+#### Core Activity Log Structure
+- [ ] Build table-based activity log:
+  - Column-based display of lead information
+  - Sortable columns (default sort by date descending)
+  - Pagination or infinite scrolling for large datasets
+  - Column visibility customization
+  - Export capabilities (CSV, JSON)
+  - Print-friendly formatting
+- [ ] Implement row-based lead representation:
+  - Signal information (type, source, date)
+  - Match score and breakdown visualization
+  - Current state in lead state machine
+  - State transition timestamps
+  - Failure reasons and details (when applicable)
+  - Action menu for individual leads
+- [ ] Create detailed lead view:
+  - Modal or panel expansion for full details
+  - Complete email as sent (subject and body)
+  - Full signal information and source links
+  - Complete match score breakdown
+  - State transition history with timestamps
+  - Related leads and company information
+  - Communication history and thread links
+  - User notes and tagging capabilities
+- [ ] Implement filtering and search system:
+  - Quick filter buttons for common states
+  - Advanced filter panel with multiple criteria
+  - Full-text search across visible fields
+  - Saved filter sets and presets
+  - Search highlighting and navigation
+  - Search history and popular searches
+- [ ] Build sorting capabilities:
+  - Multi-column sorting (shift-click for additional)
+  - Clear sort indicators (up/down arrows)
+  - Default sort restoration
+  - Custom sort order saving
+  - Performance optimizations for large datasets
+- [ ] Create density and display options:
+  - Comfortable vs compact display modes
+  - Row height adjustment
+  - Show/hide columns preference saving
+  - Alternate row styling for readability
+  - Loading states and skeleton screens
+  - Empty state handling with guidance
+
+#### Activity Log Columns (per PRD section 14.4)
+- [ ] Signal column:
+  - Signal type icon (job post, funding, launch)
+  - Source indicator (RemoteOK, HN, Product Hunt, etc.)
+  - Date display (relative and absolute)
+  - Tooltip with full source URL and description
+  - Visual indication of signal age/freshness
+- [ ] Match score column:
+  - Numerical score display (0-100)
+  - Color coding based on score ranges
+  - Tooltip with factor breakdown (recency, fit, confidence, region)
+  - Visual bar or indicator for score magnitude
+  - Sorting by numerical value
+- [ ] State column:
+  - Clear state labels (Matched, Written, Checked, Sent, Followed up, Replied, Closed, Skipped, Bounced, Unsubscribed)
+  - Status-appropriate coloring and icons
+  - Tooltip with state definition and typical duration
+  - Filtering by state values
+  - Visual progression indication
+- [ ] Email column:
+  - Subject line preview (truncated with hover expansion)
+  - Send timestamp or state-appropriate timestamp
+  - Indicator of email availability (sent vs not sent)
+  - Action to view full email content
+  - Link to thread in user's mailbox (for Replied leads)
+  - Visual indication of follow-up status
+- [ ] Additional useful columns:
+  - Company name (when available from enrichment)
+  - Contact name and title (when available)
+  - Estimated value or priority (based on match score)
+  - Days in current state
+  - Next scheduled action timestamp
+  - User-assigned tags or categories
+  - Manual override or edit indicators
+
+#### Activity Log Functionality
+- [ ] Implement lead state tracking:
+  - Accurate state machine implementation
+  - State transition triggering and validation
+  - Metadata preservation at each transition
+  - Error state handling and recovery paths
+  - Audit trail of all state changes
+- [ ] Build email content preservation:
+  - Full subject and body storage for sent emails
+  - Template used and rendering metadata
+  - Send timing and delivery information
+  - Tracking ID preservation (message and thread IDs)
+  - Associated lead and user information
+  - De-duplication and storage optimization
+- [ ] Create interaction system:
+  - Row selection for batch operations
+  - Individual lead actions (view details, edit, etc.)
+  - Bulk actions (export, delete, tag, etc.)
+  - Context-sensitive menus (right-click or equivalent)
+  - Drag and drop for reordering or tagging
+  - Undo/redo for recent actions
+- [ ] Build notification and alerting:
+  - Visual indicators for state changes
+  - Audio notifications for important events (configurable)
+  - Desktop notifications for replies and errors
+  - Mobile push notifications (when applicable)
+  - Notification preferences and scheduling
+- [ ] Implement performance optimizations:
+  - Virtual scrolling for large datasets
+  - Incremental updates rather than full reloads
+  - Database query optimization and indexing
+  - Client-side caching and filtering
+  - Web worker usage for heavy computations
+  - Predictive pre-loading for likely navigation
+- [ ] Create accessibility features:
+  - Screen reader compatible table structure
+  - Keyboard navigation and shortcuts
+  - Sufficient color contrast and focus indicators
+  - Alternative text for icons and visual indicators
+  - ARIA labels and live regions for dynamic content
+  - Responsive design for mobile viewing
+- [ ] Build data integrity systems:
+  - Consistency checks and validation
+  - Automated repair mechanisms for common issues
+  - Conflict resolution for simultaneous updates
+  - Backup and recovery capabilities
+  - Audit trail for all modifications and accesses
+
+### 4. Job Seeker To-Do List Implementation
+#### Core To-Do List Concept
+- [ ] Build form-only role detection system:
+  - Integration with signal discovery and enrichment
+  - Identification of roles requiring forms (Greenhouse, Lever, Ashby, etc.)
+  - Classification logic (email-able vs form-only)
+  - Configurable rules for form-only determination
+  - User override and feedback mechanisms
+- [ ] Create to-do item structure:
+  - Role title and company name
+  - Apply link to external application system
+  - Ready-to-paste cover note (from user facts)
+  - Suggested answers to common form questions
+  - Metadata (source signal, date found, match score)
+  - Action buttons (mark done, skip, edit, etc.)
+- [ ] Implement cover note generation:
+  - From user's confirmed fact list (PRD section 11.3.1)
+  - Tailored to the specific role and company
+  - Professional tone appropriate for job applications
+  - Length appropriate for form pasting
+  - Fact-check validation like email content (PRD section 11)
+  - Customization and editing capabilities
+- [ ] Build suggested answers system:
+  - Common form question detection and categorization
+  - Answer generation from user facts and profile
+  - Role-specific answer tailoring
+  - Length and format appropriateness
+  - Fact-check validation for truthfulness
+  - User customization and editing capabilities
+  - Learning from user selections and edits
+- [ ] Create to-do list display and interaction:
+  - List view with essential information
+  - Expandable items for detailed view
+  - Action buttons for each item
+  - Bulk selection and operations
+  - Sorting and filtering capabilities
+  - Search functionality across visible fields
+  - Saved views and presets
+  - Export capabilities (CSV for external tracking)
+- [ ] Implement completion and tracking systems:
+  - Mark done functionality with confirmation
+  - Skip functionality with reason capture
+  - Date and timestamp of completion actions
+  - Notes and tagging capabilities
+  - Follow-up reminders and scheduling
+  - Integration with calendar systems
+  - Analytics and reporting on completion rates
+- [ ] Build user guidance and education:
+  - Explanation of why items are in to-do list
+  - Guidance on cover note and answer usage
+  - Best practices for form applications
+  - Tips for increasing application success
+  - Integration with job search strategy
+  - Resources and templates for common scenarios
+- [ ] Create privacy and security protections:
+  - Data isolation by user ID
+  - Secure handling of user facts and profile data
+  - Prevention of data leakage between users
+  - Secure storage of generated content
+  - Audit logging of to-do list interactions
+  - Data retention and cleanup policies
+
+#### Post-Launch Phase Note
+- [ ] Document automatic form filling as future enhancement:
+  - Separate browser-automation worker requirement
+  - Incompatibility with serverless hosting limitations
+  - Fragility due to form changes and CAPTCHAs
+  - Terms of service restrictions on some sites
+  - Dependency on proven email loop and user demand
+  - Technical approach and infrastructure requirements
+  - Risk assessment and mitigation strategies
+  - User education and expectation setting
+
+### 5. Legal Pages Implementation
+#### Terms of Service
+- [ ] Build comprehensive Terms of Service:
+  - Acceptance and eligibility requirements
+  - Service description and limitations
+  - User obligations and responsibilities
+  - Prohibited uses and unacceptable behavior
+  - Intellectual property rights and licenses
+  - Payment and fee structure (none at launch)
+  - Termination and suspension policies
+  - Warranty disclaimers and liability limitations
+  - Indemnification and responsibility clauses
+  - Governing law and dispute resolution
+  - Changes and updates to terms
+  - Contact information for questions and concerns
+- [ ] Implement presentation and acceptance:
+  - Clear, readable formatting and structure
+  - Scroll-to-accept or equivalent mechanism
+  - Version tracking and effective dates
+  - Print and save capabilities
+  - Language selection (English at launch)
+  - Accessibility compliance (WCAG AA)
+  - Mobile-responsive design
+- [ ] Create acceptance tracking:
+  - Explicit consent recording with timestamp
+  - Audit trail of acceptance events
+  - Version-specific acceptance tracking
+  - Re-authentication prompts for material changes
+  - Easy access to current and archived versions
+  - Legal team notification and reporting
+
+#### Privacy Policy
+- [ ] Build comprehensive Privacy Policy:
+  - Information collection practices and purposes
+  - Types of data collected (CV, profile, usage, etc.)
+  - Legal bases for processing (consent, legitimate interest)
+  - Data sharing practices and recipients
+  - International data transfers and safeguards
+  - Data retention and deletion policies
+  - User rights and how to exercise them
+  - Security measures and protections
+  - Children's privacy (if applicable)
+  - Contact information for privacy concerns
+  - Changes and updates to policy
+  - Special notices (CCPA, GDPR, etc. as applicable)
+- [ ] Implement presentation and accessibility:
+  - Clear, readable formatting and structure
+  - Layered approach (summary + details)
+  - Easy navigation and section linking
+  - Print and save capabilities
+  - Language selection (English at launch)
+  - Accessibility compliance (WCAG AA)
+  - Mobile-responsive design
+- [ ] Create user rights implementation:
+  - Access request fulfillment system
+  - Correction and update procedures
+  - Deletion and erasure workflow
+  - Data portability and export capabilities
+  - Objection and restriction handling
+  - Automated decision-making explanations
+  - Children's rights and protections (if applicable)
+- [ ] Build compliance monitoring:
+  - Regular audit and assessment procedures
+  - Data protection impact assessment tracking
+  - Incident response and breach notification
+  - Training and awareness programs
+  - Vendor and third-party management
+  - Regulatory change tracking and adaptation
+
+#### Additional Legal Pages
+- [ ] Build Cookie Notice and Consent System:
+  - Essential vs non-essential cookie classification
+  - Granular consent options and controls
+  - Preference persistence and recall
+  - Policy links and information
+  - Global privacy control (GPC) support
+  - Do Not Track (DNT) respect
+- [ ] Create Accessibility Statement:
+  - Commitment and standards compliance
+  - Known limitations and exceptions
+  - Feedback and reporting mechanism
+  - Accommodation request process
+  - Third-party content disclosures
+- [ ] Build Security Page:
+  - Security practices and measures overview
+  - Encryption and data protection details
+  - Incident reporting and response process
+  - Security certifications and compliance
+  - Vulnerability disclosure program
+  - Security contact and reporting channels
+- [ ] Create DMCA and Copyright Policy:
+  - Copyright infringement reporting procedure
+  - Takedown and counter-notice process
+  - Repeat infringer policy
+  - Agent designation and contact information
+  - Policy accessibility and translation
+- [ ] Build Community Guidelines:
+  - Expected behavior and prohibited content
+  - Reporting and enforcement procedures
+  - Consequences for violations
+  - Appeal and reinstatement processes
+  - Regular review and updating
+
+### 6. Integration and Cross-System Features
+#### Audit Logging Integration
+- [ ] Create centralized audit logging system:
+  - Standardized event structure and fields
+  - Asynchronous logging to prevent performance impact
+  - Multiple output destinations (database, external services)
+  - Retention policies and archiving strategies
+  - Tamper-evident logging and integrity checks
+  - Real-time streaming for monitoring and alerts
+- [ ] Implement comprehensive event coverage:
+  - Authentication and authorization events
+  - Data access and modification events
+  - System configuration changes
+  - User action and interaction events
+  - Safety system triggers and responses
+  - Admin and operator actions
+  - Security events and access attempts
+  - Data export and access events
+  - Error and exception events
+  - Performance and health events
+- [ ] Build audit log accessibility:
+  - Search and filtering capabilities
+  - Export and reporting functions
+  - User-specific audit log views
+  - Admin and operator log views
+  - Immuta
+  - Legal and compliance log views
+  - Alert and notification integration
+  - Dashboard widgets and metrics
+
+#### Notification System
+- [ ] Build multi-channel notification system:
+  - In-app notifications (real-time, persistent)
+  - Email notifications (configurable frequency and content)
+  - Browser notifications (web push where supported)
+  - Mobile push notifications (for PWA or native apps)
+  - SMS notifications (for critical alerts, opt-in)
+  - Slack/webhook integrations (for teams and workflows)
+- [ ] Implement notification preferences:
+  - Granular control by event type and channel
+  - Quiet hours and scheduling options
+  - Priority-based interruption levels
+  - Delivery confirmation and read receipts
+  - Deduplication and rate limiting
+  - Accessibility and language considerations
+- [ ] Create notification content system:
+  - Template-based construction with personalization
+  - Localization and internationalization readiness
+  - Brand-consistent styling and formatting
+  - Action-oriented design with clear CTAs
+  - Accessible structure and navigation
+  - Tracking and analytics capabilities
+- [ ] Build notification management:
+  - Notification center and history
+  - Grouping and bundling of similar notifications
+  - Snooze and reminder functionality
+  - Archival and deletion capabilities
+  - Cross-device synchronization
+  - Do Not Disturb modes and settings
+
+#### Help and Support System
+- [ ] Build contextual help system:
+  - Tooltips and hover explanations
+  - Inline guidance and examples
+  - Walkthroughs and guided tours
+  - Context-sensitive help panels
+  - Video tutorials and demonstrations
+  - Interactive examples and sandboxes
+- [ ] Create documentation and knowledge base:
+  - Searchable help center and FAQ
+  - Getting started guides and tutorials
+  - Feature-specific documentation
+  - Troubleshooting guides and solutions
+  - Best practices and recommendations
+  - API and integration documentation (for advanced users)
+- [ ] Implement support channels:
+  - Email support system and ticketing
+  - Live chat availability and scheduling
+  - Community forums and discussion boards
+  - Social media support channels
+  - Phone support (for premium or enterprise tiers)
+- [ ] Build user education system:
+  - Onboarding and training materials
+  - Ongoing tip and best practice delivery
+  - Webinar and workshop offerings
+  - Certification and achievement systems
+  - Community ambassador and mentor programs
+  - Feedback collection and implementation
+
+#### Data Export and Portability
+- [ ] Build data export capabilities:
+  - GDPR-compliant data export and portability
+  - Multiple format options (JSON, CSV, XML)
+  - Selective data export by category and date range
+  - Scheduled and automated export options
+  - Secure delivery mechanisms and notifications
+  - Audit trail of export requests and fulfillments
+- [ ] Create data import and migration systems:
+  - Format validation and conversion
+  - Conflict resolution and deduplication
+  - Progress reporting and error handling
+  - Rollback and recovery capabilities
+  - Audit trail of import operations
+  - User guidance and validation steps
+- [ ] Implement data deletion and erasure:
+  - GDPR-compliant right to erasure fulfillment
+  - Immediate and deferred deletion options
+  - Data anonymization and pseudonymization
+  - Backup and replica handling
+  - Audit trail of deletion operations
+  - Certification and verification capabilities
+- [ ] Build data retention and archiving:
+  - Configurable retention policies by data type
+  - Automated archiving to cost-effective storage
+  - Legal hold and preservation capabilities
+  - Retrieval and restoration from archive
+  - Audit trail of retention and archiving operations
+  - Regular review and policy adjustment processes
+
+### 7. Performance, Monitoring, and Observability
+#### System Performance Monitoring
+- [ ] Build comprehensive performance dashboards:
+  - End-to-end latency tracking (signal to sent email)
+  - Pipeline stage performance breakdown
+  - Database query performance and optimization
+  - External API latency and reliability tracking
+  - Cache hit/miss ratios and effectiveness
+  - Resource utilization (CPU, memory, disk, network)
+  - Job queue depths and processing times
+  - Error rates and failure patterns
+- [ ] Implement performance alerting:
+  - Threshold-based alerting for key metrics
+  - Anomaly detection and unusual pattern identification
+  - Degradation detection and proactive notifications
+  - Escalation policies and runbook integration
+  - False positive reduction and noise filtering
+  - Automatic remediation for common issues
+- [ ] Create performance testing and optimization:
+  - Load testing and stress testing capabilities
+  - Bottleneck identification and analysis tools
+  - A/B testing framework for performance improvements
+  - Performance regression testing
+  - Capacity planning and scaling recommendations
+  - Continuous performance improvement process
+
+#### Health Checks and System Status
+- [ ] Build comprehensive health check system:
+  - Liveness and readiness probes for all services
+  - Dependency health checks (databases, APIs, external services)
+  - Resource availability and utilization checks
+  - Internal consistency and data integrity checks
+  - Security control effectiveness checks
+  - Compliance validation checks
+  - Performance benchmark validation
+- [ ] Implement health check aggregation:
+  - Overall system health status (green/yellow/red)
+  - Service-specific health indicators
+  - Dependency health summary and impact assessment
+  - Trend analysis and predictive failure detection
+  - Alerting and notification integration
+  - Dashboard widgets and status displays
+- [ ] Create system status page:
+  - Public or internal status reporting
+  - Incident tracking and timeline
+  - Maintenance scheduling and notifications
+  - Historical performance and availability data
+  - Transparency and communication during incidents
+  - Post-incident analysis and reporting
+
+#### Logging and Observability
+- [ ] Build structured logging system:
+  - Consistent log format and fields across services
+  - Appropriate log levels (debug, info, warn, error, fatal)
+  - Correlation IDs for request tracing
+  - Context enrichment (user ID, request ID, etc.)
+  - Sampling strategies for high-volume logging
+  - Filtering and routing capabilities
+  - External system integration (Datadog, Splunk, ELK, etc.)
+- [ ] Implement distributed tracing:
+  - Trace IDs and span IDs for request tracking
+  - Cross-service dependency mapping
+  - Latency analysis and bottleneck identification
+  - Error propagation and root cause analysis
+  - Performance optimization guidance
+  - User journey and funnel analysis
+  - Business transaction tracking
+- [ ] Create metrics collection and aggregation:
+  - Standardized metric naming and taxonomy
+  - Multiple metric types (counters, gauges, histograms, summaries)
+  - Labeling and dimensioning capabilities
+  - Export formats (Prometheus, OpenTelemetry, etc.)
+  - Aggregation and downsampling strategies
+  - Alerting rule integration
+  - Dashboard and visualization capabilities
+- [ ] Build error tracking and exception monitoring:
+  - Exception collection and grouping
+  - Stack trace analysis and root cause identification
+  - Error rate tracking and trend analysis
+  - User impact assessment and segmentation
+  - Release and deployment correlation
+  - Performance impact analysis
+  - Error budget and SLI/SLO tracking
+- [ ] Create observability tooling and integrations:
+  - Debugging and troubleshooting tools
+  - Performance profiling and analysis
+  - Dependency mapping and visualization
+  - Log exploration and querying
+  - Metric exploration and dashboarding
+  - Alert investigation and silencing
+  - System dependency and health checks
+
+### 8. Acceptance Criteria
+- Sender safety systems function correctly:
+  - New users start at 5 emails/day cap with proper increase algorithm
+  - Global cap fairly allocates sends during constraints
+  - 24-hour mailbox delay prevents premature sending
+  - Auto-pause triggers correctly on all five conditions with plain explanations
+  - Global suppression list properly blocks unwanted contacts
+  - Content rules prevent deceptive, impersonating, and bulk identical emails
+  - Admin controls allow emergency intervention and user management
+  - Terms of use are presented, accepted, and enforced
+- Dashboard provides complete visibility:
+  - Autopilot status prominent and actionable with Pause/Resume
+  - This week metrics accurate and actionable
+  - Replies list shows newest first with mailbox thread links
+  - Sender health meter shows limit usage and mailbox health
+  - Rules summary provides quick access to edit and Template Studio
+  - Real-time updates keep information current
+  - Mobile-responsive design works on all devices
+- Activity log provides complete lead visibility:
+  - Shows signal, match score, state, and email as sent for each lead
+  - Accurate state machine tracking with timestamps
+  - Filtering, sorting, and search capabilities work effectively
+  - Detailed lead view shows complete information
+  - Export capabilities function correctly
+  - Performance remains acceptable with large datasets
+- Job seeker to-do list operational:
+  - Correctly identifies form-only roles requiring external applications
+  - Generates fact-checked cover notes from user facts
+  - Provides suggested answers to common form questions
+  - Allows marking items as done with tracking
+  - Integrates with user's job search workflow
+- Legal pages complete and compliant:
+  - Terms of Service clear, accessible, and tracked for acceptance
+  - Privacy Policy comprehensive and implements user rights
+  - Additional legal notices (cookies, accessibility, etc.) present
+  - All pages accessible and mobile-responsive
+- Performance benchmarks met:
+  - Dashboard loads in under 2 seconds (PRD NFR)
+  - Onboarding steps respond in under 1 second (except CV reading)
+  - Template preview updates in under 500ms after change
+  - Activity log remains responsive with hundreds of leads
+  - System handles expected user load with appropriate scaling
+- All systems integrate properly:
+  - Audit logging captures significant events across all systems
+  - Notification system delivers timely and relevant information
+  - Help and support systems provide appropriate guidance
+  - Data export and portability functions work correctly
+  - Observability enables effective monitoring and troubleshooting
+- No regressions or conflicts with previous phases:
+  - Authentication and user data isolation maintained
+  - Discovery, enrichment, and writing pipelines unaffected
+  - Email Template Studio and rendering systems work correctly
+  - Sending and follow-up systems function as designed
+  - All shadcn/ui components used correctly per design system
+
+### 9. Dependencies
+- Phase 0: Design system must be complete and approved
+- Phase 1: User accounts, profiles, and authentication must be functional
+- Phase 2: Discovery, enrichment, matching, and writing pipeline must be functional
+- Phase 3: Email Template Studio, rendering, sending, and follow-up systems must be functional
+- External: Monitoring and alerting services (DataDog, New Relic, or open-source equivalents)
+- External: Email delivery services (Gmail API, Microsoft Graph)
+- External: Legal review resources for terms and policy validation
+- External: Storage services for audit logs, backups, and exported data
+- External: Communication services for notifications (email, SMS, push)
+- External: Database services for primary data storage (Neon PostgreSQL)
+- External: Cache services for performance optimization (Redis or equivalent)
+
+### 10. Estimated Effort
+- 3-4 weeks for a small team (1 backend engineer focused on safety systems, 1 full-stack engineer for dashboard/activity log, 1 frontend engineer for to-do list/help systems, 1 DevOps/observability engineer)
+
+### 11. Risks and Mitigations
+- Risk: Safety systems too restrictive or too permissive
+  Mitigation: Metric-based tuning; user feedback loops; gradual rollout with monitoring; clear appeal processes
+- Risk: Dashboard information overload or confusion
+  Mitigation: Progressive disclosure; user customization options; role-based defaults; usability testing; iterative refinement
+- Risk: Activity log performance degradation with scale
+  Mitigation: Virtual scrolling; database indexing; query optimization; archiving strategies; pagination alternatives
+- Risk: Legal compliance challenges across jurisdictions
+  Mitigation: Conservative approach at launch; expert legal review; region-based exclusions; clear user responsibility; ongoing monitoring
+- Risk: User dissatisfaction with automated controls
+  Mitigation: Transparent explanations; educational resources; easy-to-understand metrics; clear paths to resolution; human override options where appropriate
+- Risk: Notification fatigue or ineffectiveness
+  Mitigation: Granular controls; priority-based delivery; user preference learning; optimal timing studies; unsubscribe and frequency options
+- Risk: Observability overhead impacting performance
+  Mitigation: Sampling strategies; asynchronous processing; efficient storage; selective instrumentation; regular review and tuning
+- Risk: Integration complexity between systems
+  Mitigation: Clear interfaces and contracts; integration testing; monitoring of cross-system effects; incremental deployment; rollback capabilities
+- Risk: Legal page creation and maintenance overhead
+  Mitigation: Template reuse; legal team collaboration; version control; regular review schedule; automated checking tools
+- Risk: Data export and portability implementation errors
+  Mitigation: Standard format adherence; validation and testing; legal consultation; security reviews; incremental implementation with backups

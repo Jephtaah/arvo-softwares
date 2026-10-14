@@ -1,0 +1,640 @@
+# Phase 6: Open Launch
+
+## Gate Criteria
+- Open signup available to all users
+- Global daily sending cap enforced and monitored
+- System stable under public usage conditions
+- All core functionality working at scale
+- Launch success metrics being tracked and analyzed
+
+## Technology Stack
+This phase launches the complete PRD-specified technology stack to public users:
+- **Framework**: Next.js (App Router) with TypeScript
+- **Hosting**: Vercel platform (production deployment)
+- **UI**: shadcn/ui components with Tailwind CSS (design system from Phase 0)
+- **Database**: Neon PostgreSQL (production instance with scaling)
+- **Writing**: DeepSeek API integration (provider layer with cost controls)
+- **Mailboxes**: Gmail API and Microsoft Graph (OAuth connections at scale)
+- **Background Processing**: Durable job queue (Inngest/QStash or equivalent) for per-user operations
+- **Caching**: Redis or equivalent for performance optimization
+- **Monitoring**: Comprehensive logging, metrics, alerting, and observability
+- **Security**: Encryption, secure authentication, and compliance measures
+- **File Storage**: Encrypted object store for CVs, logos, and uploaded files
+
+## Overview
+Phase 6 implements the open launch of Arvo Reach as described in the PRD: "Open launch: open signup under the global daily cap." This phase removes any restrictions on user sign-up, opens the platform to the general public (within the specified user categories), and operates under the global daily sending cap to ensure fair resource allocation and system stability.
+
+## Detailed Tasks
+
+### 1. Launch Preparation and Readiness
+#### Final Pre-Launch Checks
+- [ ] Conduct comprehensive launch readiness review:
+  - All phases 0-5 completion verification
+  - Critical path testing and validation
+  - Performance benchmark confirmation
+  - Safety system effectiveness validation
+  - Security audit and vulnerability scan
+  - Compliance and legal requirements verification
+  - Monitoring and alerting system validation
+  - Backup and disaster recovery procedure testing
+- [ ] Validate launch infrastructure:
+  - Production environment final verification on Vercel
+  - Scalability testing at expected launch loads
+  - Database performance and optimization check (Neon PostgreSQL)
+  - Cache effectiveness verification
+  - Third-party service integration validation
+  - Resource utilization and capacity planning
+- [ ] Prepare launch day procedures:
+  - Pre-launch checklist execution and sign-off
+  - Launch initiation and authorization procedures
+  - Phased rollout or full launch decision criteria
+  - Real-time monitoring and response procedures
+  - Escalation paths and communication plans
+  - Rollback procedures and criteria
+- [ ] Build launch metrics and tracking:
+  - Key performance indicator (KPI) dashboard
+  - Real-time user acquisition and activation metrics
+  - System health and performance monitoring
+  - Safety system trigger monitoring
+  - Usage pattern and behavior analysis
+  - Error rate and anomaly detection
+- [ ] Establish launch communication and support:
+  - Launch announcement and press release preparation
+  - User onboarding and educational materials readiness
+  - Support team briefing and preparation
+  - Knowledge base and FAQ updates
+  - Community and social media engagement plan
+  - Post-launch assessment and next steps planning
+
+#### Access Control Removal
+- [ ] Remove any remaining access restrictions:
+  - Disable invitation-only or beta-only flags
+  - Remove domain or email whitelists (if used during beta)
+  - Remove user count limits or caps
+  - Remove geographic or demographic restrictions
+  - Remove any temporary access controls from verification phase
+- [ ] Update public-facing materials:
+  - Website and landing page readiness for public traffic (Vercel deployment)
+  - App store listings and descriptions (if applicable)
+  - Social media profiles and content
+  - Marketing and promotional materials
+  - Press and analyst relations materials
+- [ ] Verify open sign-up flow:
+  - Google and Microsoft OAuth working for all users
+  - Self-serve onboarding completion without intervention
+  - No hidden restrictions or approval processes
+  - Clear eligibility criteria communication (job seekers/agencies only)
+  - Age and terms of service compliance
+- [ ] Test global daily cap enforcement:
+  - Cap value validation and transparency
+  - Fair sharing algorithm verification
+  - Real-time usage tracking and reporting
+  - Graceful handling of cap constraints
+  - Priority-based allocation during shortages
+  - Cap exhaustion behavior and user experience
+
+### 2. Public Sign-Up and Onboarding
+#### Open Access Infrastructure
+- [ ] Ensure scalable authentication systems:
+  - Google and Microsoft OAuth readiness for public scale
+  - Rate limiting and abuse prevention for auth endpoints
+  - Error handling and recovery for auth failures
+  - Session management and scaling considerations
+  - Account creation performance under load
+- [ ] Build robust onboarding pipeline:
+  - Concurrent user handling capabilities
+  - Resource usage optimization during onboarding
+  - Error recovery and retry mechanisms
+  - Progress saving and resumption reliability
+  - Abandonment detection and follow-up capabilities
+- [ ] Create onboarding optimization:
+  - Bottleneck identification and resolution
+  - Parallel processing where possible
+  - Caching of static content and resources
+  - Database write optimization and batching
+  - External service call minimization and batching
+- [ ] Implement onboarding analytics:
+  - Funnel analysis and conversion rate tracking
+  - Step-by-step completion and drop-off metrics
+  - Time-to-completion tracking and optimization
+  - User segmentation and path analysis
+  - A/B testing capabilities for onboarding flows
+- [ ] Establish onboarding support:
+  - Real-time assistance and guidance systems
+  - Contextual help and tooltips enhancement
+  - Error messaging and recovery guidance
+  - Live chat or support availability during peak times
+  - Self-service troubleshooting resources
+
+#### User Experience Optimization
+- [ ] Optimize for first-time user success:
+  - Clear value proposition communication
+  - Progressive disclosure of complexity
+  - Guided tours and walkthroughs for key features
+  - Template suggestions and pre-configuration options
+  - Success metrics and early wins highlighting
+- [ ] Build friction reduction systems:
+  - Form optimization and validation improvements
+  - Clear error prevention and inline validation
+  - Smart defaults and intelligent suggestions
+  - Auto-completion and prediction features
+  - Context-aware help and examples
+- [ ] Create mobile-responsive onboarding:
+  - Consistent experience across device types
+  - Touch-friendly controls and interactions
+  - Mobile-optimized forms and inputs
+  - Performance optimization for mobile networks
+  - Adaptive layout and content presentation
+- [ ] Implement accessibility compliance:
+  - WCAG AA compliance verification and remediation
+  - Screen reader compatible navigation and controls
+  - Keyboard accessible all functionality
+  - Sufficient color contrast and focus indicators
+  - Alternative text for all meaningful images and icons
+- [ ] Establish internationalization readiness:
+  - Unicode and UTF-8 support verification
+  - Layout flexibility for different languages
+  - Date, time, and number format handling
+  - Right-to-left language support preparation
+  - Cultural sensitivity and localization preparation
+
+### 3. System Scalability and Performance
+#### Capacity Planning and Load Handling
+- [ ] Conduct pre-launch load testing:
+  - Gradual ramp-up to expected public launch levels
+  - Peak usage simulation (2-3x expected baseline)
+  - Soak testing for extended periods (24-48 hours)
+  - Spike testing for sudden usage increases
+  - Resource utilization analysis and bottleneck identification
+- [ ] Build auto-scaling capabilities:
+  - Horizontal scaling preparation for stateless services
+  - Database connection pooling and optimization (Neon PostgreSQL)
+  - Cache tiering and warming strategies
+  - Message queue depth and processing optimization
+  - Resource-based scaling triggers and policies
+  - Scale-down and cost optimization mechanisms
+- [ ] Implement performance optimization:
+  - Database query optimization and indexing strategy
+  - Caching strategy review and enhancement (Redis/CDN)
+  - Asset optimization and bundle size reduction
+  - Serverless function optimization and cold start mitigation
+  - External API call optimization and batching
+  - Rendering and template optimization
+- [ ] Create performance monitoring and alerting:
+  - Real-time performance dashboard and metrics
+  - Latency tracking for key user journeys
+  - Resource utilization monitoring and alerting
+  - Error rate and anomaly detection
+  - Dependency health and performance tracking
+  - Predictive scaling and proactive optimization
+- [ ] Establish performance baselines and SLIs:
+  - Dashboard load time (<2 seconds PRD requirement)
+  - Onboarding step response time (<1 second except CV reading)
+  - Template preview update time (<500ms after change)
+  - End-to-end lead processing time (<10 seconds average)
+  - API response time targets (p50, p95, p99)
+  - System availability and uptime targets
+- [ ] Build capacity planning and forecasting:
+  - Usage growth modeling and projection
+  - Resource requirement forecasting
+  - Scaling event prediction and preparation
+  - Cost optimization and efficiency tracking
+  - Bottleneck prediction and pre-optimization
+
+#### Reliability and Fault Tolerance
+- [ ] Implement redundancy and failover:
+  - Multi-zone or multi-region deployment preparation
+  - Database replication and failover testing
+  - Cache redundancy and consistency mechanisms
+  - External service failover and fallback strategies
+  - Stateless service design and instant failover capability
+  - Data backup and recovery procedure validation
+- [ ] Build graceful degradation systems:
+  - Non-essential feature disabling during high load
+  - Reduced functionality modes for partial outages
+  - User-friendly degradation messaging and options
+  - Core functionality preservation during issues
+  - Automatic recovery when conditions improve
+- [ ] Create error handling and recovery:
+  - Comprehensive exception handling and logging
+  - User-friendly error messages with recovery guidance
+  - Automatic retry with exponential backoff
+  - Dead letter queue and failed job handling
+  - Circuit breaker patterns for external dependencies
+  - Self-healing and automatic restart capabilities
+- [ ] Implement data integrity and consistency:
+  - Database constraint validation and verification
+  - Transaction integrity and ACID compliance
+  - Cross-system data consistency checks
+  - Audit trail completeness and tamper evidence
+  - Backup validation and recovery procedure testing
+  - Corruption detection and prevention mechanisms
+
+### 4. Monitoring, Observability, and Alerting
+#### Production Monitoring Systems
+- [ ] Build comprehensive production dashboard:
+  - System health overview (services, dependencies, resources)
+  - Key business metrics (users, sends, replies, engagement)
+  - Safety system status (caps, pauses, suppressions)
+  - Performance metrics (latency, throughput, error rates)
+  - Usage patterns and trends analysis
+  - Geographic and demographic distribution
+  - Real-time and historical views
+- [ ] Implement intelligent alerting system:
+  - Threshold-based alerting for critical metrics
+  - Anomaly detection and unusual pattern identification
+  - Predictive alerting for impending issues
+  - Escalation policies and runbook integration
+  - Notification routing and suppression
+  - Alert fatigue reduction and noise filtering
+  - On-call schedules and escalation procedures
+- [ ] Create distributed tracing and request tracking:
+  - End-to-end request tracing across services
+  - Latency analysis and bottleneck identification
+  - Error propagation and root cause analysis
+  - User journey and funnel analysis
+  - Dependency mapping and impact assessment
+  - Performance optimization guidance
+- [ ] Build structured logging and log management:
+  - Centralized log aggregation and storage
+  - Structured logging with consistent fields
+  - Log retention and archival strategy
+  - Real-time log streaming for monitoring
+  - Log-based alerting and anomaly detection
+  - Log exploration and querying capabilities
+- [ ] Establish metrics collection and aggregation:
+  - Standardized metric naming and taxonomy
+  - Multiple metric types (counters, gauges, histograms)
+  - Labeling and dimensioning capabilities for segmentation
+  - Export formats (Prometheus, OpenTelemetry, etc.)
+  - Aggregation and downsampling strategies
+  - Dashboard and visualization integration
+- [ ] Implement health checks and system status:
+  - Liveness and readiness probes for all services
+  - Dependency health checks (databases, APIs, external services)
+  - Internal consistency and data integrity checks
+  - Security control effectiveness checks
+  - Compliance validation checks
+  - Performance benchmark validation
+  - Overall system health status reporting
+- [ ] Create observability tooling and integration:
+  - Debugging and troubleshooting tooling
+  - Performance profiling and analysis capabilities
+  - Dependency mapping and visualization
+  - Log exploration and querying interfaces
+  - Metric exploration and dashboarding
+  - Alert investigation and silencing capabilities
+  - System dependency and health check automation
+
+### 5. Safety Systems and Abuse Prevention
+#### Sender Protection Systems
+- [ ] Validate per-user safe cap system at scale:
+  - New user initialization at 5 emails/day
+  - Stepwise increase algorithm validation and tuning
+  - Clean week criteria effectiveness monitoring
+  - Pause-state protection verification
+  - Cap visibility and user understanding metrics
+  - Manual override prevention confirmation
+- [ ] Validate global daily cap system at scale:
+  - Fair sharing algorithm effectiveness verification
+  - Real-time usage tracking and reporting accuracy
+  - Graceful degradation during cap constraints
+  - Priority-based allocation during shortages
+  - Cap exhaustion handling and user experience
+  - Transparency and user trust building
+- [ ] Validate new mailbox delay system:
+  - 24-hour delay enforcement verification
+  - Status indicator accuracy and clarity
+  - Automatic transition to active sending
+  - Bypass prevention confirmation
+  - User education and expectation setting
+- [ ] Validate auto-pause system at scale:
+  - Multi-condition trigger accuracy and effectiveness
+  - Plain language explanation clarity and actionability
+  - Resume mechanism reliability and user control
+  - Automatic re-enablement validation
+  - Manual override capability for administrators
+  - Audit logging completeness and usefulness
+- [ ] Validate global suppression list system:
+  - Ingestion sources effectiveness (unsubscribes, bounces, stop requests, public form)
+  - Storage and lookup efficiency and scalability
+  - Application point validation (pre-enrichment, pre-contact, pre-match, pre-send)
+  - Maintenance and cleanup process effectiveness
+  - Public form submission and validation
+  - Admin tool functionality and effectiveness
+- [ ] Validate content rules enforcement at scale:
+  - Deceptive subject line prevention effectiveness
+  - Impersonation prevention verification
+  - Bulk identical copy prevention validation
+  - Sender-owned facts enforcement confirmation
+  - Signal-based content enforcement verification
+  - Audit logging of rule violations and near-misses
+  - User feedback and complaint analysis
+- [ ] Validate admin controls system:
+  - Internal operator dashboard functionality
+  - Individual user management capabilities
+  - Platform-wide emergency controls
+  - Misuse identification and response systems
+  - Secure access controls and audit logging
+  - Reporting and analytics effectiveness
+- [ ] Validate terms of use enforcement:
+  - Plain language presentation effectiveness
+  - Acceptance tracking and storage verification
+  - Prohibited uses monitoring and detection
+  - Violation detection and response systems
+  - Educational resources and guidance effectiveness
+  - Legal review integration and update processes
+
+#### Platform Integrity Systems
+- [ ] Build attack surface minimization:
+  - Input validation and sanitization at all boundaries
+  - Authentication and authorization enforcement
+  - Session management and protection
+  - API rate limiting and abuse prevention
+  - Data exposure minimization and leakage prevention
+  - Dependency vulnerability management and updating
+- [ ] Implement intrusion detection and prevention:
+  - Anomalous behavior detection and alerting
+  - Known attack pattern recognition and blocking
+  - Privilege escalation attempt detection
+  - Data exfiltration prevention and detection
+  - Service abuse and resource exhaustion prevention
+  - Malicious file upload and content prevention
+- [ ] Create fraud and abuse detection systems:
+  - Fake account and bot detection
+  - Abusive usage pattern identification
+  - Resource exhaustion and denial-of-service prevention
+  - Financial abuse and theft prevention (if applicable)
+  - Reputation and trust abuse prevention
+  - Spam and malicious content detection and prevention
+- [ ] Establish incident response capabilities:
+  - Incident response playbook and procedures
+  - Communication and notification plans
+  - Forensic data collection and preservation
+  - Service restoration and recovery procedures
+  - Post-incident analysis and reporting
+  - Lessons learned and improvement implementation
+
+### 6. Launch Execution and Go-Live
+#### Pre-Launch Activities
+- [ ] Conduct final pre-launch verification:
+  - Launch readiness checklist execution and sign-off
+  - Critical path testing and validation
+  - Performance benchmark confirmation
+  - Safety system effectiveness validation
+  - Security vulnerability scan and remediation
+  - Compliance and legal requirements final check
+  - Monitoring and alerting system validation
+  - Backup and disaster recovery procedure testing
+- [ ] Prepare launch communication:
+  - Launch announcement and press release finalization
+  - Social media scheduling and preparation
+  - Community and partner notifications
+  - Internal team briefing and alignment
+  - Customer support readiness and briefing
+  - Press and analyst outreach preparation
+- [ ] Set up launch infrastructure:
+  - Production environment final validation on Vercel
+  - Monitoring and alerting system activation
+  - Logging and metrics systems verification
+  - Safety systems armed and ready
+  - Support systems staffed and prepared
+  - Escalation procedures and communication channels tested
+- [ ] Establish launch war room:
+  - Leadership and decision-making team availability
+  - Technical experts on-call and ready
+  - Communication channels established and tested
+  - Knowledge base and runbooks accessible
+  - Decision criteria and escalation procedures clear
+  - Rollback procedures and authorization defined
+#### Launch Execution
+- [ ] Execute launch day procedures:
+  - Pre-launch verification and checklist completion
+  - Launch initiation and authorization
+  - Phased rollout or full launch execution
+  - Real-time monitoring and response activation
+  - User support and communication activation
+  - Metrics and tracking systems live
+  - Safety systems monitoring and readiness
+- [ ] Monitor launch progress and metrics:
+  - User acquisition and activation rates
+  - System health and performance indicators
+  - Safety system status and triggers
+  - Error rates and anomaly detection
+  - Usage patterns and behavior analysis
+  - Resource utilization and capacity usage
+  - Communication and support effectiveness
+- [ ] Respond to launch events and issues:
+  - Issue triage and prioritization
+  - Resolution and workaround implementation
+  - Communication and user updates
+  - Escalation and decision-making as needed
+  - Adjustment and optimization based on real-time data
+  - Continuous improvement and learning
+- [ ] Validate launch success and stability:
+  - Core functionality verification at scale
+  - Performance benchmark confirmation under load
+  - Safety system effectiveness validation
+  - User experience and satisfaction monitoring
+  - System stability and reliability confirmation
+  - Readiness for post-launch operations confirmation
+#### Post-Launch Activities
+- [ ] Conduct post-launch assessment:
+  - Launch success metrics analysis and reporting
+  - User feedback collection and analysis
+  - System performance and behavior analysis
+  - Safety system effectiveness validation
+  - Error rate and anomaly analysis
+  - Resource utilization and efficiency analysis
+  - Lessons learned and improvement identification
+- [ ] Establish post-launch operations:
+  - Standard monitoring and alerting procedures
+  - Regular performance optimization and tuning
+  - Continuous safety system validation and tuning
+  - Ongoing compliance and legal requirements monitoring
+  - Regular feature development and improvement cycle
+  - User feedback integration and prioritization
+  - Technical debt reduction and system maintenance
+- [ ] Create launch communication and follow-up:
+  - Post-launch announcement and results sharing
+  - User onboarding and educational content updates
+  - Community engagement and feedback solicitation
+  - Partner and stakeholder communication
+  - Press and analyst follow-up and updates
+  - Transparency and reporting on launch outcomes
+- [ ] Build launch documentation and knowledge transfer:
+  - Launch execution documentation and lessons learned
+  - System architecture and design documentation updates
+  - Operational procedures and runbooks updates
+  - Knowledge transfer and team briefing
+  - Future launch planning and preparation guidance
+  - Celebration and recognition of team accomplishments
+
+### 7. Post-Launch Monitoring and Optimization
+#### Immediate Post-Launch Period (First 48-72 Hours)
+- [ ] Conduct intensive monitoring and support:
+  - High-frequency health and performance checks
+  - Rapid issue response and resolution
+  - User support surge capacity and management
+  - Communication update frequency and clarity
+  - Metrics and analysis acceleration
+  - Escalation procedure readiness and testing
+  - Backup and disaster recovery procedure verification
+- [ ] Validate launch assumptions and projections:
+  - User acquisition and activation vs projections
+  - Usage patterns and behavior vs expectations
+  - System performance and resource usage vs plans
+  - Safety system triggering and effectiveness vs estimates
+  - Error rates and anomalies vs baselines
+  - Resource utilization and efficiency vs targets
+- [ ] Begin optimization and tuning:
+  - Performance bottleneck identification and resolution
+  - Resource utilization optimization and efficiency
+  - Database query optimization and indexing refinement
+  - Caching strategy tuning and effectiveness improvement
+  - External API call optimization and batching improvement
+  - Rendering and template optimization and improvement
+- [ ] Collect and analyze initial user feedback:
+  - Quantitative feedback (ratings, scores, metrics)
+  - Qualitative feedback (comments, suggestions, complaints)
+  - Feature usage and preference analysis
+  - Pain point and friction point identification
+  - Delight factor and positive experience identification
+  - Comparative feedback and competitive analysis
+
+#### Short-Term Post-Launch (First 2-4 Weeks)
+- [ ] Establish regular monitoring and reporting:
+  - Daily health and performance reporting
+  - Weekly business metrics and trend analysis
+  - Monthly deep-dive analysis and review
+  - Ad-hoc reporting for significant events or changes
+  - Dashboard and visualization updates and improvements
+  - Executive summary and stakeholder reporting
+- [ ] Continue optimization and improvement:
+  - Performance optimization and tuning continuation
+  - Resource utilization efficiency improvement
+  - Database maintenance and optimization
+  - Cache effectiveness monitoring and improvement
+  - Third-party service relationship and optimization
+  - User experience refinement and improvement
+  - Safety system tuning and effectiveness improvement
+  - Security vulnerability monitoring and remediation
+- [ ] Implement user feedback and iteration:
+  - Feedback collection and prioritization system
+  - High-impact feedback implementation scheduling
+  - Bug fixing and issue resolution continuation
+  - Minor improvement and polish implementation
+  - User experience testing and validation
+  - A/B testing and experimentation framework
+  - Release planning and deployment scheduling
+- [ ] Build launch-to-stable transition:
+  - Launch-specific monitoring and alerting adjustment
+  - Standard operating procedure establishment
+  - Team transition from launch to operations mode
+  - Knowledge transfer and documentation completion
+  - Process and procedure standardization and optimization
+  - Cost optimization and efficiency focus
+
+### 8. Acceptance Criteria
+- Open sign-up is available to all eligible users:
+  - No invitation, whitelist, or access restrictions remain
+  - Google and Microsoft OAuth working for public users
+  - Self-serve onboarding completes without intervention
+  - Clear eligibility criteria communicated and enforced
+  - Age and terms of service compliance verified
+- Global daily cap system functioning correctly:
+  - Cap value enforced and monitored in real-time
+  - Fair sharing algorithm working during constraints
+  - Priority-based allocation during shortages functioning
+  - Graceful degradation during cap exhaustion
+  - Transparency and user trust in cap system maintained
+- System stable and performant under public usage:
+  - Dashboard loads in under 2 seconds (PRD NFR)
+  - Onboarding steps respond in under 1 second (except CV reading)
+  - Template preview updates in under 500ms after change
+  - End-to-end lead processing under 10 seconds average
+  - Error rates remain within acceptable bounds
+  - Resource utilization within planned capacity
+- All core functionality working at scale:
+  - Discovery and enrichment systems performing effectively
+  - Matching and scoring algorithm producing quality leads
+  - DeepSeek writing pipeline generating truthful emails
+  - Fact check preventing invalid email sending
+  - Email Template Studio and rendering functioning correctly
+  - Sending and follow-up systems operating as designed
+  - Activity log showing complete lead journey
+  - Job seeker to-do list operational (where applicable)
+  - Dashboard providing accurate real-time metrics
+- Safety systems protecting sender reputation:
+  - Per-user safe cap system working correctly
+  - Global cap preventing individual user dominance
+  - Auto-pause system triggering appropriately
+  - Global suppression list blocking unwanted contacts
+  - Content rules preventing deceptive and abusive emails
+  - Admin controls enabling emergency intervention when needed
+- Launch metrics indicating successful public availability:
+  - User acquisition meeting or exceeding projections
+  - Activation and onboarding completion rates healthy
+  - Core user journeys achieving success metrics
+  - Safety systems functioning without over-triggering
+  - User satisfaction and feedback positive or constructive
+  - System stability and reliability confirmed
+- Monitoring and observability effective:
+  - Key metrics and health indicators visible in real-time
+  - Alerting system notifying of significant issues
+  - Distributed tracing enabling problem diagnosis
+  - Log analysis supporting troubleshooting and auditing
+  - Performance analysis enabling optimization opportunities
+  - User behavior analysis informing product improvements
+- No critical regressions or launch-blocking issues:
+  - Authentication and user data isolation maintained
+  - Discovery, enrichment, and writing pipelines unaffected
+  - Email rendering and sending systems functioning correctly
+  - Activity log and dashboard systems working as designed
+  - Safety systems providing appropriate protection
+  - Legal and compliance requirements satisfied
+
+### 9. Dependencies
+- Phase 0: Design system must be complete and approved
+- Phase 1: User accounts, profiles, authentication, and onboarding must be functional
+- Phase 2: Discovery, enrichment, matching, and writing pipeline must be functional
+- Phase 3: Email Template Studio, rendering, sending, and follow-up systems must be functional
+- Phase 4: Safety systems, dashboard, activity log, and to-do list must be functional
+- Phase 5: Google and Microsoft verification completed, private beta executed and analyzed
+- External: Monitoring and alerting services (DataDog, New Relic, or open-source equivalents)
+- External: Email delivery services (Gmail API, Microsoft Graph)
+- External: Legal review resources (completed in Phase 5)
+- External: Storage services for logs, backups, and metrics
+- External: Communication services for notifications (email, SMS, push)
+- External: Database services for primary data storage (Neon PostgreSQL)
+- External: Cache services for performance optimization (Redis or equivalent)
+- External: CDN services for asset delivery and performance (Vercel)
+- External: Third-party APIs for signal sources (RemoteOK, We Work Remotely, HN, Product Hunt, ATS systems)
+- External: LLM provider API (DeepSeek or alternative) access and availability
+- External: Hosting platform (Vercel) for production deployment
+
+### 10. Estimated Effort
+- 2-3 weeks for a small team (effort focused on coordination, validation, and execution rather than major development)
+  - 1 week for final pre-launch preparations and readiness verification
+  - 1 week for launch execution, monitoring, and immediate post-launch support
+  - 1 week for transition to stable operations and initial optimization
+  - Effort distributed across team members with clear roles and responsibilities
+  - Can overlap with late Phase 5 activities as verification completes
+
+### 11. Risks and Mitigations
+- Risk: Launch-scale usage exceeds projections and strains systems
+  Mitigation: Conservative capacity planning; auto-scaling preparation; graceful degradation; load shedding; clear communication during issues
+- Risk: Unexpected technical issues or failures during launch
+  Mitigation: Comprehensive pre-launch testing; rollback procedures; feature flags; dark launching capabilities; war room readiness
+- Risk: Safety systems over-trigger or under-perform at launch scale
+  Mitigation: Metric-based tuning from beta; conservative initial thresholds; monitoring and adjustment; user feedback integration
+- Risk: User experience confusion or dissatisfaction at scale
+  Mitigation: Clear onboarding and guidance; contextual help and tooltips; responsive support; iterative improvement based on feedback
+- Risk: Legal, compliance, or policy issues emerge post-launch
+  Mitigation: Thorough pre-launch legal review; ongoing monitoring and compliance; region-based exclusions if needed; rapid response capability
+- Risk: Launch coordination and communication failures
+  Mitigation: Clear plans and responsibilities; regular sync and updates; centralized communication; documented procedures; post-launch review
+- Risk: Team burnout or resource depletion during launch period
+  Mitigation: Rotating on-call schedules; adequate rest and recovery; celebration of milestones; post-launch recognition and recovery time
+- Risk: Launch metrics disappointing or below expectations
+  Mitigation: Real-time analysis and adjustment; user feedback integration; rapid iteration and improvement; communication transparency; learning and planning for future
