@@ -1,0 +1,111 @@
+/* Design System Color Tokens */
+
+/* Warm Neutral Surfaces */
+--color-surface-50: #fdfaf7;
+--color-surface-100: #fcf5f0;
+--color-surface-200: #f9efea;
+--color-surface-300: #f5e3d9;
+--color-surface-400: #f0d7c6;
+--color-surface-500: #e9c7b2;
+--color-surface-600: #d4a88f;
+--color-surface-700: #b7876d;
+--color-surface-800: #99684e;
+--color-surface-900: #7c503a;
+
+/* Friendly Primary Accent Color */
+--color-primary-50: #fff7f0;
+--color-primary-100: #ffefea;
+--color-primary-200: #ffe0d0;
+--color-primary-300: #ffc9b1;
+--color-primary-400: #ffaa82;
+--color-primary-500: #ff7c40; /* Main primary color */
+--color-primary-600: #e66e36;
+--color-primary-700: #b2572b;
+--color-primary-800: #7f3d1e;
+--color-primary-900: #542914;
+
+/* Soft Success Color */
+--color-success-50: #f0fdf4;
+--color-success-100: #dcfce7;
+--color-success-200: #bbf7d0;
+--color-success-300: #86efac;
+--color-success-400: #4ade80;
+--color-success-500: #22c55e;
+--color-success-600: #16a34a;
+--color-success-700: #15803d;
+--color-success-800: #166534;
+--color-success-900: #14532d;
+
+/* Soft Warning Color */
+--color-warning-50: #fffbeb;
+--color-warning-100: #fef3c7;
+--color-warning-200: #fde68a;
+--color-warning-300: #fcd34d;
+--color-warning-400: #fbbf24;
+--color-warning-500: #f59e0b;
+--color-warning-600: #d97706;
+--color-warning-700: #b45309;
+--color-warning-800: #92400e;
+--color-warning-900: #78350f;
+
+/* Soft Error Color */
+--color-error-50: #fef2f2;
+--color-error-100: #fee2e2;
+--color-error-200: #fecaca;
+--color-error-300: #fca5a5;
+--color-error-400: #f87171;
+--color-error-500: #ef4444;
+--color-error-600: #dc2626;
+--color-error-700: #b91c1c;
+--color-error-800: #991b1b;
+--color-error-900: #7f1d1d;
+
+/* Text Colors (on surfaces) */
+--color-text-primary: #1a1a1a;
+--color-text-secondary: #4b4b4b;
+--color-text-muted: #6b6b6b;
+--color-text-inverse: #ffffff;
+
+/* Border Colors */
+--color-border: #e2e8f0;
+--color-border-muted: #f1f5f9;
+
+/* Ring Colors (for focus states) */
+--color-ring: #ff7c40;
+--color-ring-offset: #ffffff;
+
+/* Shadow Colors */
+--color-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+
+/* Dark Theme Variables (same variables, different values) */
+:root.dark {
+  /* Warm Neutral Surfaces (dark) */
+  --color-surface-50: #1a1613;
+  --color-surface-100: #241d19;
+  --color-surface-200: #2d2420;
+  --color-surface-300: #362c27;
+  --color-surface-400: #403530;
+  --color-surface-500: #4b3e38;
+  --color-surface-600: #584842;
+  --color-surface-700: #67544d;
+  --color-surface-800: #77615a;
+  --color-surface-900: #897166;
+
+  /* Friendly Primary Accent Color (dark) */
+  --color-primary-50: #2f1a0d;
+  --color-primary-100: #3d2316;
+  --color-primary-200: #4d2d1f;
+  --color-primary-300: #5e3828;
+  --color-primary-400: #714432;
+  --color-primary-500: #86523d;
+  --color-primary-600: #9c6348;
+  --color-primary-700: #b47758;
+  --color-primary-800: #ce8d6b;
+  --color-primary-900: #e9a585;
+
+  /* Text Colors (dark) */
+  --color-text-primary: #fdfaf7;
+  --color-text-secondary: #e2e8f0;
+  --color-text-muted: #cbd5e1;
+  --color-text-inverse: #000000;
+}
