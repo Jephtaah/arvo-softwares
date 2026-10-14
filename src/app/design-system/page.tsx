@@ -254,7 +254,7 @@ export default function DesignSystemPage() {
               <h3 className="text-lg font-medium">Alert</h3>
               <div className="space-y-3">
                 <Alert>
-                  <AlertTitle>Success!</AlertAlertTitle>
+                  <AlertTitle>Success!</AlertTitle>
                   <AlertDescription>Your changes have been saved successfully.</AlertDescription>
                 </Alert>
                 <Alert>

@@ -1,4 +1,5 @@
 import './globals.css';
+import Nav from "@/components/layout/nav";
 
 export const metadata = {
   title: 'Arvo Reach',
@@ -12,7 +13,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className="min-h-screen bg-background text-foreground">
+        <Nav />
+        <main className="flex min-h-[calc(100vh-3.5rem)] w-full flex-col">
+          {children}
+        </main>
+      </body>
     </html>
   );
 }

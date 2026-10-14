@@ -17,8 +17,22 @@ body {
 body {
   background-color: var(--color-surface-50);
   color: var(--color-text-primary);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 * {
   box-sizing: border-box;
+}
+
+/* Navigation styles */
+nav {
+  background-color: var(--color-surface-100);
+  border-bottom-color: var(--color-border);
+}
+
+/* Main content area */
+main {
+  flex: 1;
 }
